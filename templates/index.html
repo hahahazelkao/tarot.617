@@ -134,6 +134,10 @@
             fetch('/draw_card')
                 .then(response => response.json())
                 .then(data => {
+                    if (data.error) {
+                        console.error("Error from API:", data.error);
+                        return;
+                    }
                     const isRotated = Math.random() > 0.5;
                     const rotationStyle = isRotated ? 'rotate(180deg)' : 'rotate(0deg)';
 
@@ -142,14 +146,15 @@
 
                     // 添加抽中的牌到結果區域
                     drawnCardCount++;
-                    drawnCards.push({ ...data, image: `/${data.image}`, rotationStyle });
+                    drawnCards.push({ ...data, rotationStyle });
                     updateResultDeck();
 
                     if (drawnCardCount >= totalCardsToDraw) {
                         hideRemainingCards();
                         hideTopDeck();
                     }
-                });
+                })
+                .catch(error => console.error('Error fetching card:', error));
         }
 
         // 隱藏剩餘未抽的牌
