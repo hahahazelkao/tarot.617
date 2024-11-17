@@ -142,7 +142,7 @@
 
                     // 添加抽中的牌到結果區域
                     drawnCardCount++;
-                    drawnCards.push({ ...data, rotationStyle });
+                    drawnCards.push({ ...data, image: `/${data.image}`, rotationStyle });
                     updateResultDeck();
 
                     if (drawnCardCount >= totalCardsToDraw) {
