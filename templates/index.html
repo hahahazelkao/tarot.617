@@ -1,197 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>17塔羅占卜</title>
-    <header style="display: flex; align-items: center; padding: 10px 20px; background-color: #2c2c54; color: white;">
-        <a href="https://www.instagram.com/tarot.617/" target="_blank" style="text-decoration: none; display: flex; align-items: center; color: white;">
-            <img src="static/images/logo1.jpg" alt="Logo" style="height: 40px; border-radius: 50%; margin-right: 10px;">
-            <h1 style="margin: 0; font-size: 20px;">tarot.617</h1>
-        </a>
-    </header>
-    <style>
-        body { 
-            font-family: 'Cinzel', serif;
-            text-align: center; 
-            overflow-x: hidden; 
-            padding: 20px;
-        }
-        .tarot-deck {
-            display: none;
-            gap: 5px;
-            overflow-x: auto;
-            white-space: nowrap;
-            padding: 10px;
-            justify-content: center;
-        }
-        .result-deck {
-            display: flex;
-            gap: 5px; /* 每張牌之間的間距 */
-            justify-content: center; /* 將結果居中 */
-            margin-top: 20px;
-            white-space: nowrap; /* 確保卡片不會換行 */
-        }
-        .tarot-card {
-            width: 70px;
-            height: 120px;
-            background-image: url('/static/images/back_image.png');
-            background-size: cover;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: white;
-        }
-        .card-front {
-            width: 70px;
-            height: 120px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 5px;
-            box-sizing: border-box;
-        }
-        .card-image {
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-        }
-        .card-front h3 {
-            background-color: rgba(255, 255, 255, 0.7);
-            color: black;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-size: 10px;
-            text-align: center;
-            margin: 0;
-        }
-        button {
-            margin-top: 30px;
-            padding: 5px 10px; /* 調小按鈕內邊距 */
-            font-size: 14px; /* 調小按鈕字體 */
-            cursor: pointer;
-        }
-    </style>
+    <!-- 載入外部 CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
+    <header>
+        <a href="https://www.instagram.com/tarot.617/" target="_blank">
+            <img src="{{ url_for('static', filename='images/logo1.jpg') }}" alt="Logo">
+            <h1>tarot.617</h1>
+        </a>
+    </header>
+
     <h1>輸入想抽的牌數</h1>
     <input type="number" id="cardCountInput" placeholder="請輸入牌數" min="1" max="78">
-    <button onclick="startDrawing()">開始抽牌</button>
+    <button id="startBtn">開始抽牌</button>
+
     <div class="tarot-deck" id="tarotDeck"></div>
     <div class="result-deck" id="resultDeck"></div>
-    
-    <script>
-        let totalCardsToDraw = 0; // 使用者選擇的抽牌數量
-        let drawnCardCount = 0; // 追踪已抽取的牌數量
-        const drawnCards = []; // 保存已抽取的牌
 
-        // 初始化塔羅牌
-        function initializeDeck() {
-            const deck = document.getElementById('tarotDeck');
-            const resultDeck = document.getElementById('resultDeck');
-            deck.innerHTML = ''; // 清空卡片容器
-            resultDeck.innerHTML = ''; // 清空結果容器
-            drawnCardCount = 0; // 重置已抽取的牌數量
-            drawnCards.length = 0; // 清空已抽取的牌陣列
-            //deck.style.display = 'flex'; // 恢復顯示上方牌列
-
-            for (let i = 0; i < 78; i++) {
-                const cardElement = document.createElement('div');
-                cardElement.className = 'tarot-card';
-                cardElement.onclick = function() { drawCard(cardElement); };
-                deck.appendChild(cardElement);
-            }
-        }
-
-        // 點擊「開始抽牌」按鈕
-        function startDrawing() {
-            const input = document.getElementById('cardCountInput');
-            totalCardsToDraw = parseInt(input.value);
-
-            if (isNaN(totalCardsToDraw) || totalCardsToDraw <= 0 || totalCardsToDraw > 78) {
-                alert('請輸入有效的牌數 (1-78)');
-                return;
-            }
-
-            initializeDeck(); // 初始化牌堆
-
-            // 顯示牌列
-            const deck = document.getElementById('tarotDeck');
-            deck.style.display = 'flex'; // 顯示上方的牌列
-        }
-
-        // 點擊塔羅牌請求抽牌
-        function drawCard(cardElement) {
-            if (drawnCardCount >= totalCardsToDraw) {
-                hideRemainingCards();
-                return;
-            }
-
-            fetch('/draw_card')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        console.error("Error from API:", data.error);
-                        return;
-                    }
-                    const isRotated = Math.random() > 0.5;
-                    const rotationStyle = isRotated ? 'rotate(180deg)' : 'rotate(0deg)';
-
-                    // 隱藏被選中的牌
-                    cardElement.style.display = 'none';
-
-                    // 添加抽中的牌到結果區域
-                    drawnCardCount++;
-                    drawnCards.push({ ...data, rotationStyle });
-                    updateResultDeck();
-
-                    if (drawnCardCount >= totalCardsToDraw) {
-                        hideRemainingCards();
-                        hideTopDeck();
-                    }
-                })
-                .catch(error => console.error('Error fetching card:', error));
-        }
-
-        // 隱藏剩餘未抽的牌
-        function hideRemainingCards() {
-            const allCards = document.querySelectorAll('.tarot-card');
-            allCards.forEach(card => {
-                if (card.onclick) { // 只有未抽的牌還有 onclick 事件
-                    card.style.display = 'none'; // 隱藏未抽取的牌
-                }
-            });
-        }
-
-        // 隱藏上方的牌列
-        function hideTopDeck() {
-            const deck = document.getElementById('tarotDeck');
-            deck.style.display = 'none'; // 隱藏上方的牌列
-        }
-
-        // 更新結果顯示區域
-        function updateResultDeck() {
-            const resultDeck = document.getElementById('resultDeck');
-            resultDeck.innerHTML = '';
-            drawnCards.forEach(card => {
-                const resultCard = document.createElement('div');
-                resultCard.className = 'tarot-card';
-                resultCard.innerHTML = `
-                    <div class="card-front">
-                        <div class="card-image" style="background-image: url('${card.image}'); transform: ${card.rotationStyle};"></div>
-                        <h3>${card.name}</h3>
-                    </div>
-                `;
-                resultDeck.appendChild(resultCard);
-            });
-        }
-
-        // 頁面加載時初始化
-        initializeDeck();
-    </script>
+    <!-- 載入外部 JS -->
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>
