@@ -48,7 +48,7 @@ header h1 {
 .tarot-card {
     width: 70px;
     height: 120px;
-    background-image: url("{{ url_for('static', filename='images/back_image.png') }}");
+    background-image: url('/static/images/back_image.png');
     background-size: cover;
     cursor: pointer;
     display: flex;
